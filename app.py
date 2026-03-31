@@ -3,14 +3,13 @@ import re
 import json
 import os
 import random
-import asyncio
 from datetime import datetime
-from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 # ============= CONFIG =============
-TELEGRAM_TOKEN = os.getenv("8782723465:AAFicRi8Dl_wRWEVra6D188aTRczBANRhME")  # सुरक्षित तरीका
+TELEGRAM_TOKEN = "PUT_YOUR_NEW_TOKEN_HERE"  # 🔥 DIRECT (no env problem)
+
 OWNER_ID = "@itseagelrajput"
 BOT_NAME = "DataHunter"
 BOT_TAG = "by Harsh and DIGITAL PHANTOM"
@@ -47,7 +46,8 @@ def get_user(user_id):
             "searches": 0,
             "ref_code": f"PH{random.randint(10000,99999)}",
             "ref_count": 0,
-            "ref_by": None
+            "ref_by": None,
+            "join_date": datetime.now().timestamp()
         }
         save_json(USERS_FILE, users)
     return users[uid]
@@ -68,7 +68,8 @@ def search_number(number):
 
         if data.get("phone_details", {}).get("success"):
             r = data["phone_details"]["result"]["results"][0]
-            msg = f"""📡 DATAHUNTER RESULT
+            msg = f"""
+📡 DataHunter Result
 
 📱 {r.get('mobile')}
 👤 {r.get('name')}
@@ -78,7 +79,7 @@ def search_number(number):
 🔄 {r.get('circle')}
 """
             return msg, True
-        return "❌ NOT FOUND", False
+        return "❌ TARGET NOT FOUND", False
     except:
         return "❌ ERROR", False
 
@@ -124,47 +125,29 @@ async def handle_number(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     num = re.findall(r"\d{10}", update.message.text)
     if not num:
-        await update.message.reply_text("❌ invalid")
+        await update.message.reply_text("❌ invalid number")
         return
 
     result, ok = search_number(num[0])
 
     if ok:
         user["tries"] -= 1
+        user["searches"] += 1
         update_user(update.effective_user.id, user)
 
     await update.message.reply_text(result)
     context.user_data["wait"] = False
 
-# ============= TELEGRAM APP =============
-tg_app = Application.builder().token(TELEGRAM_TOKEN).build()
-
-tg_app.add_handler(CommandHandler("start", start))
-tg_app.add_handler(CallbackQueryHandler(button_click))
-tg_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_number))
-
-# ============= FLASK SERVER =============
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    return "Bot Running"
-
-@app.route(f"/{TELEGRAM_TOKEN}", methods=["POST"])
-async def webhook():
-    data = request.get_json(force=True)
-    update = Update.de_json(data, tg_app.bot)
-    await tg_app.process_update(update)
-    return "ok"
-
-# ============= START =============
-async def setup():
-    await tg_app.initialize()
-    await tg_app.bot.set_webhook(f"{os.getenv('APP_URL')}/{TELEGRAM_TOKEN}")
-
+# ============= MAIN =============
 def main():
-    asyncio.run(setup())
-    app.run(host="0.0.0.0", port=10000)
+    app = Application.builder().token(TELEGRAM_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_click))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_number))
+
+    print("🔥 Bot Running on Koyeb 🔥")
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
