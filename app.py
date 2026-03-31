@@ -10,7 +10,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
 # ============= CONFIG =============
-TELEGRAM_TOKEN = os.getenv("8782723465:AAFicRi8Dl_wRWEVra6D188aTRczBANRhME")  # सुरक्षित तरीका
+TELEGRAM_TOKEN = os.getenv("BOT_TOKEN")  # सुरक्षित तरीका
 OWNER_ID = "@itseagelrajput"
 BOT_NAME = "DataHunter"
 BOT_TAG = "by Harsh and DIGITAL PHANTOM"
